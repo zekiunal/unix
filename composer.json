@@ -1,0 +1,24 @@
+{
+  "name": "zekiunal/unix",
+  "description": "Example unix socket application",
+  "type": "project",
+  "require": {
+    "php": "^8.4",
+    "ext-sockets": "*",
+    "ext-posix": "*",
+    "ext-pcntl": "*",
+    "monolog/monolog": "^3.9.0",
+    "nikic/fast-route": "^v1.3.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Nexus\\": "src/",
+      "App\\": "app/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Nexus\\Tests\\": "tests/"
+    }
+  }
+}
