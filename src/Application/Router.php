@@ -20,17 +20,17 @@ class Router
 
     private function buildDispatcher(array $routes): void
     {
-        $this->dispatcher = simpleDispatcher(function(RouteCollector $r) use ($routes) {
+        $this->dispatcher = simpleDispatcher(function (RouteCollector $r) use ($routes) {
             foreach ($routes as $prefix => $groupRoutes) {
                 foreach ($groupRoutes as $route) {
                     $method = strtoupper($route['method']);
                     $uri = $prefix === '/' ? $route['uri'] : $prefix . $route['uri'];
                     $handler = [
-                        'controller' => $route['controller'],
-                        'action'     => $route['action'],
-                        'template'   => $route['template'] ?? null,
-                        'is_public'  => $route['is_public'] ?? false,
-                        'accept'     => $route['accept'] ?? [],
+                        'controller'  => $route['controller'],
+                        'action'      => $route['action'],
+                        'template'    => $route['template'] ?? null,
+                        'is_public'   => $route['is_public'] ?? false,
+                        'accept'      => $route['accept'] ?? [],
                         'validations' => $route['validations'] ?? []
                     ];
                     $r->addRoute($method, $uri, $handler);
@@ -39,7 +39,7 @@ class Router
         });
     }
 
-    public function dispatch($httpMethod, $uri, array $data = []): mixed
+    public function dispatch($httpMethod, $uri, array $data = []): array
     {
         if (false !== $pos = strpos($uri, '?')) {
             $uri = substr($uri, 0, $pos);
@@ -51,16 +51,16 @@ class Router
 
         switch ($routeInfo[0]) {
             case Dispatcher::NOT_FOUND:
-                $this->handleNotFound();
+                return $this->handleNotFound();
 
             case Dispatcher::METHOD_NOT_ALLOWED:
-                $this->handleMethodNotAllowed($routeInfo[1]);
+                return $this->handleMethodNotAllowed($routeInfo[1]);
 
             case Dispatcher::FOUND:
                 return $this->handleFound($routeInfo[1], $routeInfo[2], $data);
         }
 
-        return null;
+        return [];
     }
 
     public function getDispatcher(): Dispatcher
@@ -68,21 +68,24 @@ class Router
         return $this->dispatcher;
     }
 
-    #[NoReturn]
-    private function handleNotFound(): void
+    public function handleNotFound(): array
     {
-        echo '404 - Page not found';
-        exit;
+        return [
+            'code'    => 404,
+            'message' => 'Not found!'
+        ];
     }
 
-    #[NoReturn]
-    private function handleMethodNotAllowed($allowedMethods): void
+    public function handleMethodNotAllowed($allowedMethods): array
     {
-        echo '405 - Method not allowed. Allowed methods: ' . implode(', ', $allowedMethods);
-        exit;
+        return [
+            'code'    => 405,
+            'message' => 'Method not allowed',
+            'detail'  => 'Allowed methods: ' . implode(', ', $allowedMethods)
+        ];
     }
 
-    private function handleFound($handler, $vars, array $data = [])
+    public function handleFound($handler, $vars, array $data = [])
     {
         if (!$handler['is_public'] && !$this->isAuthenticated()) {
             echo "Not Authenticated";
