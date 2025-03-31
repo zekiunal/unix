@@ -160,10 +160,10 @@ abstract class Service implements ServiceInterface
                 $message = $this->receiveMessage($client);
                 $this->metrics['requests']++;
 
-                if (!$this->security->authenticateMessage($message)) {
-                    $this->logger->error("Authentication error");
+                #if (!$this->security->authenticateMessage($message)) {
+                    #$this->logger->error("Authentication error");
                     #throw new AuthenticationException("Authentication error");
-                }
+                #}
 
                 $response = $this->handleMessage($routers, $message);
                 $this->sendMessage($client, $response);
