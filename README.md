@@ -118,3 +118,141 @@ $orchestrator->registerService('ProductService');
 - Services must run on the same physical host or share a volume for socket files
 - Limited to PHP applications
 - Requires `pcntl` and other extensions not available in all PHP environments
+
+```mermaid
+classDiagram
+    %% Core Classes
+    class Config {
+        -static instance: Config
+        -config: array
+        -__construct()
+        +static getInstance(): Config
+        +get(string key, default): mixed
+    }
+
+    class Logger {
+        -static instance: Logger
+        -logPath: string
+        -serviceName: string
+        -debug: bool
+        -__construct(string serviceName)
+        +static getInstance(string serviceName): Logger
+        +info(string message, array context): void
+        +error(string message, array context): void
+        +debug(string message, array context): void
+        -log(string level, string message, array context): void
+    }
+
+    class Security {
+        -static instance: Security
+        -authToken: string
+        -__construct()
+        +static getInstance(): Security
+        -generateToken(): string
+        +getToken(): string
+        +validateToken(string token): bool
+        +authenticateMessage(array message): bool
+    }
+
+    %% Exceptions
+    class Exception
+
+    class ServiceException {
+    }
+
+    class SocketException {
+    }
+
+    class AuthenticationException {
+    }
+
+    class TimeoutException {
+    }
+
+    %% Orchestrator
+    class Orchestrator {
+        #services: array
+        #logger: Logger
+        #running: bool
+        #serviceInfo: array
+        +__construct()
+        -setupSignalHandlers(): void
+        +handleSignal(int signal): void
+        +registerService(string serviceClass, string serviceName): void
+        +run(): void
+        +reload(): void
+        +shutdown(): void
+        +getStatus(): array
+    }
+
+    %% Base Container
+    class ContainerBase {
+        <<abstract>>
+        #socketPath: string
+        #socket
+        #serviceName: string
+        #logger: Logger
+        #running: bool
+        #security: Security
+        #metrics: array
+        +__construct(string serviceName)
+        -setupSignalHandlers(): void
+        +handleSignal(int signal): void
+        #createSocket(): void
+        +listen(): void
+        #receiveMessage($client): array
+        #sendMessage($client, array data): void
+        +callService(string serviceName, array data): array
+        +getMetrics(): array
+        #getMemoryUsage(): string
+        #handleMessage(array message): array
+        +__destruct()
+    }
+
+    %% Service Classes
+    class UserService {
+        #handleMessage(array message): array
+        #getAllUsers(): array
+        #getUser(int userId): array
+        #createUser(array userData): array
+        #updateUser(int userId, array userData): array
+        #deleteUser(int userId): array
+    }
+
+    class AdminService {
+        #systemStats: array
+        +__construct(string serviceName)
+        +updateSystemStats(): void
+        #handleMessage(array message): array
+        #getServicesStatus(): array
+        #restartService(string serviceName): array
+        #restartAllServices(): array
+        #getLogs(string serviceName, int lines): array
+        #getProcessList(): array
+        #getEnvironmentInfo(): array
+    }
+
+    %% Relationships
+    Exception <|-- ServiceException
+    ServiceException <|-- SocketException
+    ServiceException <|-- AuthenticationException
+    ServiceException <|-- TimeoutException
+
+    Orchestrator --> Logger : uses
+    Orchestrator --> UserService : manages
+    Orchestrator --> AdminService : manages
+
+    ContainerBase <|-- UserService
+    ContainerBase <|-- AdminService
+
+    ContainerBase --> Logger : uses
+    ContainerBase --> Security : uses
+    ContainerBase --> Config : uses
+
+    UserService ..> ServiceException : throws
+    AdminService ..> ServiceException : throws
+
+    Config --> Logger : dependency
+    Logger --> Config : dependency
+
+```
