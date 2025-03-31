@@ -47,7 +47,7 @@ class Router
 
         $uri = rawurldecode($uri);
 
-        $routeInfo = $this->dispatcher->dispatch($httpMethod, $uri);
+        $routeInfo = $this->getDispatcher()->dispatch($httpMethod, $uri);
 
         switch ($routeInfo[0]) {
             case Dispatcher::NOT_FOUND:
@@ -61,6 +61,11 @@ class Router
         }
 
         return null;
+    }
+
+    public function getDispatcher(): Dispatcher
+    {
+        return $this->dispatcher;
     }
 
     #[NoReturn]
