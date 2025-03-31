@@ -5,14 +5,15 @@ namespace Nexus\Socket;
 use Monolog\Handler\StreamHandler;
 use Monolog\Level;
 use Monolog\Logger;
-use Nexus\Application\Router;
+use Nexus\Domain\Repository\RouterRepositoryInterface;
+use Nexus\Domain\UseCase\Router\HandleMessageUseCase;
+use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 
 abstract class Service implements ServiceInterface
 {
-    /**
-     * @var \Nexus\Socket\Security
-     */
+
+    protected ContainerInterface $container;
     protected Security $security;
     protected LoggerInterface $logger;
     protected string $serviceName;
@@ -30,9 +31,10 @@ abstract class Service implements ServiceInterface
     /**
      * @throws \Nexus\Socket\SocketException
      */
-    public function __construct(string $serviceName)
+    public function __construct(string $serviceName, ContainerInterface $container)
     {
         $this->serviceName = $serviceName;
+        $this->container = $container;
         $this->logger = new Logger('socket');
         $this->logger->pushHandler(new StreamHandler('php://stdout', Level::Debug));
 
@@ -160,7 +162,7 @@ abstract class Service implements ServiceInterface
 
                 if (!$this->security->authenticateMessage($message)) {
                     $this->logger->error("Authentication error");
-                    throw new AuthenticationException("Authentication error");
+                    #throw new AuthenticationException("Authentication error");
                 }
 
                 $response = $this->handleMessage($routers, $message);
@@ -208,15 +210,9 @@ abstract class Service implements ServiceInterface
 
     protected function handleMessage(array $routes, array $message)
     {
-        $method = $message['method'] ?? 'GET';
-        $path = $message['path'] ?? '/';
-        $data = $message['data'] ?? [];
-
-        #$this->logger->debug("İstek alındı", ['path' => $path, 'method' => $method]);
-
-        $router = new Router($routes);
-        $response = $router->dispatch($method, $path, $data);
-        unset($router);
+        $handleMessageUseCase = new HandleMessageUseCase($this->container->get(RouterRepositoryInterface::class));
+        $response = $handleMessageUseCase->execute($message);
+        unset($handleMessageUseCase);
         return $response;
     }
 

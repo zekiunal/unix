@@ -1,5 +1,6 @@
 <?php
 
+use DI\ContainerBuilder;
 use Monolog\Handler\StreamHandler;
 use Monolog\Level;
 use Monolog\Logger;
@@ -19,11 +20,18 @@ if (file_exists(BASE_DIR . '/vendor/autoload.php')) {
     exit(1);
 }
 
-$routers = require_once BASE_DIR . '/app/config/routers.php';
+$containerBuilder = new ContainerBuilder();
+$containerBuilder->addDefinitions(BASE_DIR . '/app/config/container.php');
 
 try {
-	$application = new Unix();
-    $application->setRouters($routers);
+    $container = $containerBuilder->build();
+} catch (Exception $e) {
+    throw new RuntimeException('Unable to load container: ' . $e->getMessage());
+}
+
+try {
+	$application = new Unix($container);
+    $application->setRouters($container->get('routes'));
 	$application->registerService(\App\Services\UserService::class, 'user');
     $application->run();
 } catch (Throwable $e) {

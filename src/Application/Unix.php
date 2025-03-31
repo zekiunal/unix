@@ -2,6 +2,7 @@
 
 namespace Nexus\Application;
 
+use DI\Container;
 use Monolog\Handler\StreamHandler;
 use Monolog\Level;
 use Monolog\Logger;
@@ -11,12 +12,17 @@ use Psr\Log\LoggerInterface;
 class Unix
 {
     public array $routers = [];
+    /**
+     * @var \DI\Container
+     */
+    private Container $container;
     private LoggerInterface $logger;
     protected array $services = [];
     protected bool $running = false;
     protected array $serviceInfo = [];
-    public function __construct()
+    public function __construct(Container $container)
     {
+        $this->container = $container;
         $this->logger = new Logger('application');
         $this->logger->pushHandler(new StreamHandler('php://stdout', Level::Debug));
         $this->setupSignalHandlers();
@@ -94,7 +100,7 @@ class Unix
                 /**
                  * @var \Nexus\Socket\ServiceInterface $service
                  */
-                $service = new $serviceClass($serviceName);
+                $service = new $serviceClass($serviceName, $this->container);
                 $service->listen($this->routers);
             } catch (\Throwable $e) {
                 $logger = $this->logger;

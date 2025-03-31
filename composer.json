@@ -8,7 +8,8 @@
     "ext-posix": "*",
     "ext-pcntl": "*",
     "monolog/monolog": "^3.9.0",
-    "nikic/fast-route": "^v1.3.0"
+    "nikic/fast-route": "^v1.3.0",
+    "php-di/php-di": "7.0.9"
   },
   "autoload": {
     "psr-4": {
