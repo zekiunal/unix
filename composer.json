@@ -3,18 +3,22 @@
   "description": "Example unix socket application",
   "type": "project",
   "minimum-stability": "dev",
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "https://github.com/zekiunal/nexus.git"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/zekiunal/router.git"
+    }
+  ],
   "require": {
     "php": "^8.4",
-    "ext-sockets": "*",
-    "ext-posix": "*",
-    "ext-pcntl": "*",
-    "monolog/monolog": "^3.9.0",
-    "nikic/fast-route": "^v1.3.0",
-    "php-di/php-di": "7.0.9"
+    "zekiunal/nexus": "dev-main"
   },
   "autoload": {
     "psr-4": {
-      "Nexus\\": "src/",
       "UnixApp\\": "unix-app/",
       "RestApp\\": "rest-app/"
     }
