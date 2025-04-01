@@ -50,18 +50,4 @@ class Micro
     {
         $this->routers = $routers;
     }
-
-    public function registerSocket(string $serviceClass, string $serviceName): void
-    {
-        if (!class_exists($serviceClass)) {
-            $this->logger->error("Service class not found: $serviceClass");
-            throw new ServiceException("Service class not found: $serviceClass");
-        }
-
-        $this->logger->info("Service registered: $serviceName ($serviceClass)");
-
-
-
-
-    }
 }
