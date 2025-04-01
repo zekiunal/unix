@@ -13,9 +13,6 @@ use Psr\Log\LoggerInterface;
 class Micro
 {
     public array $routers = [];
-    /**
-     * @var \DI\Container
-     */
     private Container $container;
     private LoggerInterface $logger;
     protected bool $running = false;
