@@ -34,6 +34,7 @@ try {
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $_SERVER['REQUEST_URI'] = '/';
         $application = new Micro($container);
+        $application->setRouters($container->get('routes'));
         $application->run();
     }
 } catch (Throwable $e) {
