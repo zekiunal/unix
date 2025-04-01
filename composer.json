@@ -3,16 +3,6 @@
   "description": "Example unix socket application",
   "type": "project",
   "minimum-stability": "dev",
-  "repositories": [
-    {
-      "type": "vcs",
-      "url": "https://github.com/zekiunal/nexus.git"
-    },
-    {
-      "type": "vcs",
-      "url": "https://github.com/zekiunal/router.git"
-    }
-  ],
   "require": {
     "php": "^8.4",
     "zekiunal/nexus": "dev-main"
