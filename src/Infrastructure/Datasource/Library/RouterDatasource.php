@@ -16,10 +16,10 @@ class RouterDatasource implements RouterDatasourceInterface
     public function handleMessage(array $message): array
     {
         $method = $message['method'] ?? 'GET';
-        $path = $message['path'] ?? '/';
+        $uri = $message['path'] ?? '/';
         $data = $message['data'] ?? [];
         $router = new Router($this->routes);
-        $response = $router->dispatch($method, $path, $data);
+        $response = $router->dispatch($method, $uri, $data);
         unset($router);
         return $response;
     }

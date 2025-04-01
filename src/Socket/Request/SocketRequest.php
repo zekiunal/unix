@@ -1,56 +1,55 @@
 <?php
 
-namespace Nexus\Socket;
+namespace Nexus\Socket\Request;
 
-use Monolog\Handler\StreamHandler;
-use Monolog\Level;
-use Monolog\Logger;
 use Nexus\Domain\Repository\RouterRepositoryInterface;
 use Nexus\Domain\UseCase\Router\HandleMessageUseCase;
+use Nexus\Socket\AuthenticationException;
+use Nexus\Socket\Config;
+use Nexus\Socket\SocketException;
+use Nexus\Socket\TimeoutException;
 use Psr\Container\ContainerInterface;
-use Psr\Log\LoggerInterface;
 
-abstract class Service implements ServiceInterface
+class SocketRequest extends AbstractRequest
 {
-
-    protected ContainerInterface $container;
-    protected Security $security;
-    protected LoggerInterface $logger;
-    protected string $serviceName;
-    protected bool $running = false;
     protected \Socket|false $socket = false;
     protected string $socketPath;
-    protected array $metrics = [
-        'requests' => 0,
-        'errors' => 0,
-        'startTime' => 0,
-        'avgResponseTime' => 0,
-        'totalResponseTime' => 0
-    ];
 
     /**
      * @throws \Nexus\Socket\SocketException
      */
     public function __construct(string $serviceName, ContainerInterface $container)
     {
-        $this->serviceName = $serviceName;
-        $this->container = $container;
-        $this->logger = new Logger('socket');
-        $this->logger->pushHandler(new StreamHandler('php://stdout', Level::Debug));
-
+        parent::__construct($serviceName, $container);
         $config = Config::getInstance();
-        $this->serviceName = $serviceName;
-        $this->security = Security::getInstance();
-
         $socketDir = $config->get('socket_path', '/tmp/services/');
         $this->socketPath = $socketDir . "service_$serviceName.sock";
-        $this->metrics['startTime'] = time();
-
-        // Süreç başlık bilgisini güncelle - bu ps komutunda daha detaylı gösterecek
         cli_set_process_title("php-service: $serviceName");
-
         $this->setupSignalHandlers();
         $this->createSocket();
+    }
+
+    private function setupSignalHandlers(): void
+    {
+        pcntl_signal(SIGTERM, [$this, 'handleSignal']);
+        pcntl_signal(SIGINT, [$this, 'handleSignal']);
+        pcntl_signal(SIGHUP, [$this, 'handleSignal']);
+    }
+
+    public function handleSignal(int $signal): void
+    {
+        $this->logger->info("Signal received: $signal");
+        switch ($signal) {
+            case SIGTERM:
+            case SIGINT:
+                $this->logger->info("Shutdown signal received, service is shutting down...");
+                $this->running = false;
+                break;
+            case SIGHUP:
+                $this->logger->info("Reload signal received");
+                // Reload special logic here
+                break;
+        }
     }
 
     /**
@@ -96,36 +95,6 @@ abstract class Service implements ServiceInterface
         $this->logger->info("Socket started successfully and listening...");
     }
 
-
-    private function setupSignalHandlers(): void
-    {
-        pcntl_signal(SIGTERM, [$this, 'handleSignal']);
-        pcntl_signal(SIGINT, [$this, 'handleSignal']);
-        pcntl_signal(SIGHUP, [$this, 'handleSignal']);
-    }
-
-    public function handleSignal(int $signal): void
-    {
-        $this->logger->info("Signal received: $signal");
-
-        switch ($signal) {
-            case SIGTERM:
-            case SIGINT:
-                $this->logger->info("Shutdown signal received, service is shutting down...");
-                $this->running = false;
-                break;
-
-            case SIGHUP:
-                $this->logger->info("Reload signal received");
-                // Reload special logic here
-                break;
-        }
-    }
-
-
-    /**
-     * @throws \Nexus\Socket\SocketException
-     */
     public function listen($routers): void
     {
         $this->logger->info("[$this->serviceName] Unix socket is listening: $this->socketPath");
@@ -161,8 +130,8 @@ abstract class Service implements ServiceInterface
                 $this->metrics['requests']++;
 
                 #if (!$this->security->authenticateMessage($message)) {
-                    #$this->logger->error("Authentication error");
-                    #throw new AuthenticationException("Authentication error");
+                #$this->logger->error("Authentication error");
+                #throw new AuthenticationException("Authentication error");
                 #}
 
                 $response = $this->handleMessage($routers, $message);
@@ -206,41 +175,6 @@ abstract class Service implements ServiceInterface
         }
 
         $this->logger->info("Service stopped listening");
-    }
-
-    protected function handleMessage(array $routes, array $message)
-    {
-        $handleMessageUseCase = new HandleMessageUseCase($this->container->get(RouterRepositoryInterface::class));
-        $response = $handleMessageUseCase->execute($message);
-        unset($handleMessageUseCase);
-        return $response;
-    }
-
-    /**
-     * @throws \Nexus\Socket\SocketException
-     */
-    protected function sendMessage(\Socket $client, array $data): void
-    {
-        $message = json_encode($data);
-        if ($message === false) {
-            $this->logger->error("JSON encoding failed: " . json_last_error_msg());
-            throw new SocketException("JSON encoding failed: " . json_last_error_msg());
-        }
-
-        $messageLength = strlen($message);
-        $sent = 0;
-
-        while ($sent < $messageLength) {
-            $result = @socket_write($client, substr($message, $sent), $messageLength - $sent);
-
-            if ($result === false) {
-                $error = socket_strerror(socket_last_error($client));
-                $this->logger->error("Error while sending message: $error");
-                throw new SocketException("Error while sending message: $error");
-            }
-
-            $sent += $result;
-        }
     }
 
     /**
@@ -308,4 +242,38 @@ abstract class Service implements ServiceInterface
         return $decoded;
     }
 
+    protected function handleMessage(array $routes, array $message)
+    {
+        $handleMessageUseCase = new HandleMessageUseCase($this->container->get(RouterRepositoryInterface::class));
+        $response = $handleMessageUseCase->execute($message);
+        unset($handleMessageUseCase);
+        return $response;
+    }
+
+    /**
+     * @throws \Nexus\Socket\SocketException
+     */
+    protected function sendMessage(\Socket $client, array $data): void
+    {
+        $message = json_encode($data);
+        if ($message === false) {
+            $this->logger->error("JSON encoding failed: " . json_last_error_msg());
+            throw new SocketException("JSON encoding failed: " . json_last_error_msg());
+        }
+
+        $messageLength = strlen($message);
+        $sent = 0;
+
+        while ($sent < $messageLength) {
+            $result = @socket_write($client, substr($message, $sent), $messageLength - $sent);
+
+            if ($result === false) {
+                $error = socket_strerror(socket_last_error($client));
+                $this->logger->error("Error while sending message: $error");
+                throw new SocketException("Error while sending message: $error");
+            }
+
+            $sent += $result;
+        }
+    }
 }

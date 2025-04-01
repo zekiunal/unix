@@ -55,7 +55,7 @@ class Unix
                     // Servisin yeniden başlatılması
                     $this->logger->info("Service restarting: $name");
                     $serviceClass = $this->serviceInfo[$name]['class'];
-                    $this->registerService($serviceClass, $name);
+                    $this->registerSocket($serviceClass, $name);
                 }
             }
 
@@ -70,7 +70,10 @@ class Unix
         $this->routers = $routers;
     }
 
-    public function registerService(string $serviceClass, string $serviceName): void
+    /**
+     * @throws \Nexus\Application\Exception\ServiceException
+     */
+    public function registerSocket(string $serviceClass, string $serviceName): void
     {
         if (!class_exists($serviceClass)) {
             $this->logger->error("Service class not found: $serviceClass");
@@ -96,10 +99,6 @@ class Unix
         } else {
             try {
                 cli_set_process_title("php-ms: $serviceName [" . $serviceClass . "]");
-
-                /**
-                 * @var \Nexus\Socket\ServiceInterface $service
-                 */
                 $service = new $serviceClass($serviceName, $this->container);
                 $service->listen($this->routers);
             } catch (\Throwable $e) {

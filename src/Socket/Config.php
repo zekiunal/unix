@@ -9,7 +9,6 @@ class Config
 
     private function __construct()
     {
-        // Varsayılan ayarları yükle
         $this->config = [
             'log_path' => '/var/log/microservices/',
             'socket_path' => '/tmp/service/',
@@ -19,18 +18,15 @@ class Config
             'debug' => true,
         ];
 
-        // Eğer bir yapılandırma dosyası varsa, onu yükle
         if (file_exists(__DIR__ . '/config/config.php')) {
             $userConfig = include(__DIR__ . '/config/config.php');
             $this->config = array_merge($this->config, $userConfig);
         }
 
-        // Log dizini kontrolü
         if (!file_exists($this->config['log_path'])) {
             mkdir($this->config['log_path'], 0755, true);
         }
 
-        // Socket dizini kontrolü
         if (!file_exists($this->config['socket_path'])) {
             mkdir($this->config['socket_path'], 0755, true);
         }

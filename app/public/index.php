@@ -7,11 +7,11 @@ use Monolog\Logger;
 use Nexus\Application\Unix;
 
 error_reporting(E_ALL);
-ini_set('display_errors', 0);
+ini_set('display_errors', 1);
 ini_set('log_errors', 1);
 ini_set('error_log', '/var/log/microservices/error.log');
 
-const BASE_DIR = __DIR__ . '/../';
+const BASE_DIR = __DIR__ . '/unix/';
 
 if (file_exists(BASE_DIR . '/vendor/autoload.php')) {
     require_once BASE_DIR . '/vendor/autoload.php';
@@ -32,7 +32,7 @@ try {
 try {
 	$application = new Unix($container);
     $application->setRouters($container->get('routes'));
-	$application->registerService(\App\Services\UserService::class, 'user');
+	$application->registerSocket(\Nexus\Socket\Request\SocketRequest::class, 'home');
     $application->run();
 } catch (Throwable $e) {
     $logger = new Logger('socket');

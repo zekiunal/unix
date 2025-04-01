@@ -39,7 +39,7 @@ class Router
         });
     }
 
-    public function dispatch($httpMethod, $uri, array $data = []): array
+    public function dispatch(string $httpMethod, string $uri, array $data = []): array
     {
         if (false !== $pos = strpos($uri, '?')) {
             $uri = substr($uri, 0, $pos);
@@ -48,7 +48,6 @@ class Router
         $uri = rawurldecode($uri);
 
         $routeInfo = $this->getDispatcher()->dispatch($httpMethod, $uri);
-
         switch ($routeInfo[0]) {
             case Dispatcher::NOT_FOUND:
                 return $this->handleNotFound();

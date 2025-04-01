@@ -20,14 +20,14 @@ return [
     '/user'    => [
         [
             'controller'  => UserController::class,
-            'action'      => 'users',
+            'action'      => 'index',
             'method'      => 'GET',
-            'uri'         => '',
+            'uri'         => '/info',
             'template'    => 'dashboard',
             'accept'      => ['account_id', 'csrf_token'],
             'validations' => [
             ],
-            'is_public'   => true,
+            'is_public'   => false,
             'title'       => 'Mintrade - Submit Account Details',
             'description' => 'Submit your account details to start using Mintrade...',
         ],
