@@ -1,7 +1,7 @@
 <?php
 
-use RestApp\Controllers\HomeController;
-use RestApp\Controllers\UserController;
+use UnixApp\Controllers\HomeController;
+use UnixApp\Controllers\UserController;
 
 return [
     '/' => [
@@ -20,14 +20,14 @@ return [
     '/user'    => [
         [
             'controller'  => UserController::class,
-            'action'      => 'index',
+            'action'      => 'users',
             'method'      => 'GET',
-            'uri'         => '/info',
+            'uri'         => '',
             'template'    => 'dashboard',
             'accept'      => ['account_id', 'csrf_token'],
             'validations' => [
             ],
-            'is_public'   => false,
+            'is_public'   => true,
             'title'       => 'Mintrade - Submit Account Details',
             'description' => 'Submit your account details to start using Mintrade...',
         ],
