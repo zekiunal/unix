@@ -4,7 +4,6 @@ namespace Nexus\Application;
 
 use FastRoute\Dispatcher;
 use FastRoute\RouteCollector;
-use JetBrains\PhpStorm\NoReturn;
 use function FastRoute\simpleDispatcher;
 
 class Router
