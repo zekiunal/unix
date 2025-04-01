@@ -13,11 +13,6 @@ class RouterDatasource implements RouterDatasourceInterface
         $this->socketPath = "/tmp/service/service_router.sock";
     }
 
-    public function handlerFound(array $handler = [], array $vars = [], array $data = []): array
-    {
-        return [];
-    }
-
     public function handleMessage(array $message): array
     {
         $method = $message['method'] ?? 'GET';
