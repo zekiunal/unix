@@ -6,7 +6,7 @@ use Nexus\Domain\Repository\RouterRepositoryInterface;
 use Nexus\Domain\UseCase\Router\HandleMessageUseCase;
 use Psr\Container\ContainerInterface;
 
-class HttpsRequest extends AbstractRequest
+class HttpRequest extends AbstractRequest
 {
     public function __construct(string $serviceName, ContainerInterface $container)
     {

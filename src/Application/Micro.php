@@ -7,7 +7,7 @@ use Monolog\Handler\StreamHandler;
 use Monolog\Level;
 use Monolog\Logger;
 use Nexus\Application\Exception\ServiceException;
-use Nexus\Socket\Request\HttpsRequest;
+use Nexus\Socket\Request\HttpRequest;
 use Psr\Log\LoggerInterface;
 
 class Micro
@@ -30,7 +30,7 @@ class Micro
     {
         $this->logger ->info("Application running...");
         try {
-            $service = new HttpsRequest('http', $this->container);
+            $service = new HttpRequest('http', $this->container);
             $service->listen($this->routers);
         } catch (\Throwable $e) {
             $logger = $this->logger;
