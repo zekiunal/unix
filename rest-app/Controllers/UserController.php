@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controllers;
+namespace RestApp\Controllers;
 
 class UserController extends BaseController
 {

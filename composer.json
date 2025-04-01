@@ -14,12 +14,11 @@
   "autoload": {
     "psr-4": {
       "Nexus\\": "src/",
-      "App\\": "app/"
+      "UnixApp\\": "unix-app/",
+      "RestApp\\": "rest-app/"
     }
   },
   "autoload-dev": {
-    "psr-4": {
-      "Nexus\\Tests\\": "tests/"
-    }
+    "psr-4": {}
   }
 }

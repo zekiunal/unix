@@ -4,7 +4,7 @@ use DI\ContainerBuilder;
 use Monolog\Handler\StreamHandler;
 use Monolog\Level;
 use Monolog\Logger;
-use Nexus\Application\Micro;
+use Nexus\Application\Unix;
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -13,15 +13,15 @@ ini_set('error_log', '/var/log/microservices/error.log');
 
 const BASE_DIR = __DIR__ . '/../';
 
-if (file_exists(BASE_DIR . '/vendor/autoload.php')) {
-    require_once BASE_DIR . '/vendor/autoload.php';
+if (file_exists(BASE_DIR . '/../vendor/autoload.php')) {
+    require_once BASE_DIR . '/../vendor/autoload.php';
 } else {
     echo "Error: Composer dependencies not installed. Run 'composer install' first." . PHP_EOL;
     exit(1);
 }
 
 $containerBuilder = new ContainerBuilder();
-$containerBuilder->addDefinitions(BASE_DIR . '/app/config/container.php');
+$containerBuilder->addDefinitions(BASE_DIR . '/config/container.php');
 
 try {
     $container = $containerBuilder->build();
@@ -30,12 +30,10 @@ try {
 }
 
 try {
-    while(true) {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_SERVER['REQUEST_URI'] = '/';
-        $application = new Micro($container);
-        $application->run();
-    }
+	$application = new Unix($container);
+    $application->setRouters($container->get('routes'));
+	$application->registerSocket(\Nexus\Socket\Request\SocketRequest::class, 'home');
+    $application->run();
 } catch (Throwable $e) {
     $logger = new Logger('socket');
 
