@@ -18,9 +18,7 @@ class Micro
      */
     private Container $container;
     private LoggerInterface $logger;
-    protected array $services = [];
     protected bool $running = false;
-    protected array $serviceInfo = [];
     public function __construct(Container $container)
     {
         $this->container = $container;
