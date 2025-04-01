@@ -1,7 +1,7 @@
 <?php
 
-use UnixApp\Controllers\HomeController;
-use UnixApp\Controllers\UserController;
+use RestApp\Controllers\HomeController;
+use RestApp\Controllers\UserController;
 
 return [
     '/' => [
