@@ -2,6 +2,7 @@
   "name": "zekiunal/unix",
   "description": "Example unix socket application",
   "type": "project",
+  "minimum-stability": "dev",
   "require": {
     "php": "^8.4",
     "ext-sockets": "*",
